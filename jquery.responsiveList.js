@@ -1,4 +1,73 @@
 (function ( $ ) {
+    function cssParser(value) {
+        this.expression = new RegExp('(\\d+)((?:px)|(?:%)|(?:em)|(?:){0})$');
+        this.source = '0px';
+        this.unit = 'px';
+        this.numericValue = 0;
+
+        if(value) {
+            this.parse(value);
+        }
+    }
+
+    cssParser.prototype.parse = function(value) {
+        var matches = this.expression.exec(value);
+        if(matches) {
+            this.source = matches[0];
+            this.numericValue = matches[1];
+            this.unit = matches[2];
+        }
+    }
+
+    cssParser.prototype.isPixel = function() {
+        if(this.unit == 'px') {
+            return true;
+        }
+        if(!this.isNoUnit()) {
+            return true;
+        }
+    }
+
+    cssParser.prototype.isPercentage = function() {
+        if(this.unit == '%') {
+            return true;
+        }
+        return false;
+    }
+
+    cssParser.prototype.isNoUnit = function() {
+        if(this.unit == '') {
+            return true;
+        }
+        return false;
+    }
+
+    cssParser.prototype.numeric = function() {
+        return this.numericValue;
+    }
+
+    function cssDistanceCalculator() {
+    }
+
+    cssDistanceCalculator.prototype.calculatePixel = function(value, reference) {
+        var valueParser = new cssParser(value);
+        var referenceParser = new cssParser(reference);
+
+        if(valueParser.isPercentage() && referenceParser.isPixel()) {
+            return (valueParser.numeric() / 100) * referenceParser.numeric();
+        }
+    }
+
+    cssDistanceCalculator.prototype.calculatePercentage = function(value, reference) {
+        var valueParser = new cssParser(value);
+        var referenceParser = new cssParser(reference);
+
+        if(valueParser.isPixel() && referenceParser.isPixel()) {
+            return (valueParser.numeric() / referenceParser.numeric()) * 100;
+        }
+    }
+
+
     function responsiveList(listElement, settings) {
         this.listElement = listElement;
         this.settings = settings;
@@ -20,8 +89,10 @@
     responsiveList.prototype.calculateTrueChildrenPerRow = function(childrenPerRow, childrenCount) {
         var emptyChildrenPerRow = 0;
 
-        if(childrenCount < childrenPerRow) {
-            emptyChildrenPerRow = childrenPerRow - childrenCount;
+        if(this.settings.fillEmptyChildren) {
+            if(childrenCount < childrenPerRow) {
+                emptyChildrenPerRow = childrenPerRow - childrenCount;
+            }
         }
 
         return childrenPerRow - emptyChildrenPerRow;
@@ -38,6 +109,7 @@
             return restSpace;
         }
     }
+
     responsiveList.prototype.calculateMargin = function(emptySpace, trueChildrenPerRow) {
         var margin =  Math.floor(emptySpace / (trueChildrenPerRow - 1));
         if(margin < this.settings.minimumMargin) {
@@ -117,8 +189,12 @@
         init : function(options) {
             var _this = this;
             var settings = $.extend({
+                fillEmptyChildren: true,
                 minimumMargin: 20,
-                maximumMargin: 40
+                maximumMargin: 50,
+
+                minimumWidth: 0,
+                maximumWidth: 0
             }, options);
 
             $(this).each(function() {
@@ -132,6 +208,12 @@
             });
 
             $(this).responsiveList('responsive');
+
+            var cssCalc = new cssDistanceCalculator();
+            var value = cssCalc.calculatePixel('10%', '1000px');
+            console.log('value: '+value);
+            var value = cssCalc.calculatePercentage('100px', '1000px');
+            console.log('value: '+value);
         },
 
         responsive: function() {
