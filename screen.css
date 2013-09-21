@@ -1,0 +1,113 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: #EBEBEB;
+    color: gray;
+}
+
+h1, h2, h3 {
+    text-transform: uppercase;
+    margin-top: 100px;
+}
+
+a {
+    color: gray;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #4d4d4d;
+}
+
+.clearfix:after {
+    content: " "; /* Older browser do not support empty content */
+    visibility: hidden;
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+#topBar {
+    height: 25px;
+    padding: 7px;
+    padding-left: 15px;
+    background-color: #F1F1F1;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+#socialCodingButtons {
+    float: right;
+}
+
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 100px;
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1170px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 970px;
+    }
+}
+
+.productListContainer {
+    padding: 1px;
+    border: solid 1px grey;
+}
+
+.productList {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+.productList li {
+    width: 187px;
+    height: 350px;
+    margin: 0 0px 38px 0px;
+}
+
+.coverHolder {
+    position: relative;
+}
+
+.productList img {
+    height: 280px;
+    width: 100%;
+}
+
+.productList p {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.productList .bookPrice {
+    margin-top: 5px;
+    font-size: 16px;
+}
+
+.productList .bookName {
+    margin-top: 15px;
+    color: #4D4D4D;
+    font-size: 17px;
+    font-family: sans-serif;
+    font-weight: lighter;
+}
+
+.productList a:hover {
+    color: #808080;
+}
+
+#productListScale li {
+    width: 50px;
+}
