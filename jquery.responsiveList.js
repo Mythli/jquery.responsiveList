@@ -5,6 +5,9 @@
         this.unit = 'px';
         this.numericValue = 0;
 
+        this.minimumMargin = 0;
+        this.maximumMargin = 0;
+
         if(value) {
             this.parse(value);
         }
@@ -23,7 +26,7 @@
         if(this.unit == 'px') {
             return true;
         }
-        if(!this.isNoUnit()) {
+        if(!this.isPercentage()) {
             return true;
         }
     }
@@ -35,15 +38,8 @@
         return false;
     }
 
-    cssParser.prototype.isNoUnit = function() {
-        if(this.unit == '') {
-            return true;
-        }
-        return false;
-    }
-
     cssParser.prototype.numeric = function() {
-        return this.numericValue;
+        return Number(this.numericValue);
     }
 
     function cssDistanceCalculator() {
@@ -56,6 +52,7 @@
         if(valueParser.isPercentage() && referenceParser.isPixel()) {
             return (valueParser.numeric() / 100) * referenceParser.numeric();
         }
+        return valueParser.numeric();
     }
 
     cssDistanceCalculator.prototype.calculatePercentage = function(value, reference) {
@@ -65,6 +62,8 @@
         if(valueParser.isPixel() && referenceParser.isPixel()) {
             return (valueParser.numeric() / referenceParser.numeric()) * 100;
         }
+
+        return valueParser.numeric();
     }
 
 
@@ -72,10 +71,29 @@
         this.listElement = listElement;
         this.settings = settings;
         this.firstChild = $(this.listElement).find('li');
+        this.responsiveDimensions = new Array(0, 0);
+        this.listDimensions = new Array(0, 0);
+        this.childDimensions = new Array(0, 0);
     }
 
-    responsiveList.prototype.calculateWidth = function(element) {
-        return $(element).innerWidth();
+    responsiveList.prototype.calculateDimensions = function(element) {
+        var dimensions = new Array(0, 0);
+        dimensions[0] = $(element).innerWidth();
+        dimensions[1] = $(element).innerHeight();
+        return dimensions;
+    }
+
+    responsiveList.prototype.calculateSettings = function(listDimensions) {
+        var calc = new cssDistanceCalculator();
+
+        this.minimumMargin = calc.calculatePixel(this.settings.minimumMargin, listDimensions[0]);
+        this.maximumMargin = calc.calculatePixel(this.settings.maximumMargin, listDimensions[0]);
+
+        this.minimumWidth = calc.calculatePixel(this.settings.minimumWidth, listDimensions[0]);
+        this.maximumWidth = calc.calculatePixel(this.settings.maximumWidth, listDimensions[0]);
+
+        this.minimumHeight = calc.calculatePixel(this.settings.minimumHeight, listDimensions[1]);
+        this.maximumHeight = calc.calculatePixel(this.settings.maximumHeight, listDimensions[1]);
     }
 
     responsiveList.prototype.calculateChildrenCount = function(element) {
@@ -83,7 +101,7 @@
     }
 
     responsiveList.prototype.calculateChildrenPerRow = function(listWidth, childWidth) {
-        return Math.floor(listWidth / (childWidth + this.settings.minimumMargin));
+        return Math.floor(listWidth / (childWidth + this.minimumMargin));
     }
 
     responsiveList.prototype.calculateTrueChildrenPerRow = function(childrenPerRow, childrenCount) {
@@ -100,7 +118,7 @@
 
     responsiveList.prototype.calculateEmptySpace = function(listWidth, childWidth, trueChildrenPerRow) {
         var childSpace = trueChildrenPerRow * childWidth;
-        var restSpace = listWidth % (childSpace);
+        var restSpace = listWidth % childSpace;
         var emptyChildSpace = listWidth - childSpace;
 
         if(emptyChildSpace > restSpace) {
@@ -110,33 +128,67 @@
         }
     }
 
-    responsiveList.prototype.calculateMargin = function(emptySpace, trueChildrenPerRow) {
-        var margin =  Math.floor(emptySpace / (trueChildrenPerRow - 1));
-        if(margin < this.settings.minimumMargin) {
-            margin = this.settings.minimumMargin;
+    responsiveList.prototype.calculateChildEmptySpace = function(emptySpace, trueChildrenPerRow) {
+        var space = 0;
+
+        if(trueChildrenPerRow > 1) {
+            space =  Math.floor(emptySpace / (trueChildrenPerRow - 1));
+        } else {
+            space = emptySpace;
         }
-        return margin;
+
+        return space;
+    }
+
+    responsiveList.prototype.calculateMargin = function(childEmptySpace) {
+        if(this.settings.responsiveMargin) {
+            var margin = childEmptySpace;
+
+            if(margin < this.minimumMargin) {
+                margin = this.minimumMargin;
+            }
+
+            if(margin > this.maximumMargin && this.maximumMargin != 0) {
+                return this.maximumMargin;
+            }
+            return margin
+        } else {
+            return this.minimumMargin;
+        }
+    }
+
+    responsiveList.prototype.calculateResponsiveDimensions = function(childEmptySpace, childDimensions) {
+        var dimensions = childDimensions;
+
+        if(this.settings.responsiveScale) {
+            dimensions[0] = dimensions[0] + childEmptySpace;
+        }
+
+        return dimensions;
     }
 
     responsiveList.prototype.calculate = function() {
         // calculate list width
-        this.oldListWidth = this.listWidth;
-        this.listWidth = this.calculateWidth(this.listElement);
+        this.oldListDimensions = this.listDimensions;
+        this.listDimensions = this.calculateDimensions(this.listElement);
 
         // calculate child width
-        this.oldChildWidth = this.childWidth;
-        this.childWidth = this.calculateWidth(this.firstChild);
-        console.log('childWidth: '+this.childWidth);
+        this.oldChildDimensions = this.childDimensions;
+        this.childDimensions = this.calculateDimensions(this.firstChild);
+
+        // calculate settings
+        if(this.oldListDimensions[0] != this.listDimensions[0]) {
+            this.calculateSettings(this.listDimensions[0]);
+        }
 
         // calculate children count
         this.oldChildrenCount = this.childrenCount;
         this.childrenCount = this.calculateChildrenCount(this.listElement);
-        console.log('childrenCount: '+this.childrenCount);
 
         // calculate children per row
-        if(this.oldListWidth != this.listWidth || this.oldChildWidth != this.childWidth) {
+        if(this.oldListDimensions[0] != this.listDimensions[0] || this.oldChildDimensions[0] != this.childDimensions[0]) {
             this.oldChildrenPerRow = this.childrenPerRow;
-            this.childrenPerRow = this.calculateChildrenPerRow(this.listWidth, this.childWidth);
+            this.childrenPerRow = this.calculateChildrenPerRow(this.listDimensions[0], this.childDimensions[0]);
         }
 
         // calculate true children per row
@@ -146,41 +198,72 @@
         }
 
         // calculate empty space
-        if(this.oldListWidth != this.listWidth || this.oldChildWidth != this.childWidth || this.oldTruChildrenPerRow != this.trueChildrenPerRow) {
+        if(this.listDimensions[0] != this.listDimensions[0] || this.oldChildDimensions[0] != this.childDimensions[0] || this.oldTruChildrenPerRow != this.trueChildrenPerRow) {
             this.oldEmptySpace = this.emptySpace;
-            this.emptySpace = this.calculateEmptySpace(this.listWidth, this.childWidth, this.trueChildrenPerRow);
-            console.log('empty space: '+this.emptySpace);
+            this.emptySpace = this.calculateEmptySpace(this.listDimensions[0], this.childDimensions[0], this.trueChildrenPerRow);
+        }
+
+        // calculate child empty space
+        if(this.oldEmptySpace != this.emptySpace || this.oldTruChildrenPerRow != this.trueChildrenPerRow) {
+            this.oldChildEmptySpace = this.childEmptySpace;
+            this.childEmptySpace = this.calculateChildEmptySpace(this.emptySpace, this.trueChildrenPerRow);
         }
 
         // calculate margin
-        if(this.oldEmptySpace != this.emptySpace || this.oldTruChildrenPerRow != this.trueChildrenPerRow) {
+        if(this.oldChildEmptySpace != this.childEmptySpace) {
             this.oldMargin = this.margin;
-            this.margin = this.calculateMargin(this.emptySpace, this.trueChildrenPerRow);
+            this.margin = this.calculateMargin(this.childEmptySpace);
         }
+
+        this.responsiveDimensions = this.calculateResponsiveDimensions(this.childEmptySpace, this.childDimensions);
+
+        console.log('childWidth: '+this.childDimensions[0]);
+        console.log('childrenCount: '+this.childrenCount);
+        console.log('trueChildren: '+this.trueChildrenPerRow);
+        console.log('empty space: '+this.emptySpace);
+        console.log('child empty space: '+this.childEmptySpace);
+        console.log('margin: '+this.margin);
+        console.log('responsive dimensions: width: '+this.responsiveDimensions[0]+' height: '+this.responsiveDimensions[1]);
     }
 
-    responsiveList.prototype.adjust = function(margin, trueChildrenPerRow) {
+    responsiveList.prototype.adjustMargin = function(element, i, margin, trueChildrenPerRow) {
+        var currentMargin = 0;
+
+        if(i < trueChildrenPerRow) {
+            currentMargin = margin;
+        } else {
+            currentMargin = 0;
+            if(trueChildrenPerRow == 1) {
+                currentMargin = margin;
+            }
+        }
+
+        $(element).css('margin-right', currentMargin+'px');
+    }
+
+    responsiveList.prototype.adjustScale = function(element, responsiveDimensions) {
+        $(element).css('width', responsiveDimensions[0]+'px');
+        $(element).css('height', responsiveDimensions[1]+'px');
+    }
+
+    responsiveList.prototype.adjust = function(trueChildrenPerRow, margin, responsiveDimensions) {
         var _this = this;
         var i = 0;
         $(this.listElement).children().each(function() {
-            var currentMargin = 0;
             i++;
-            if(i < trueChildrenPerRow) {
-                currentMargin = margin;
-            } else {
-                currentMargin = 0;
+
+            _this.adjustMargin(this, i, margin, trueChildrenPerRow);
+            _this.adjustScale(this, responsiveDimensions);
+
+            if(i >= trueChildrenPerRow) {
                 i = 0;
             }
-
-            $(this).css('margin-right', currentMargin+'px');
         });
     }
 
     responsiveList.prototype.responsive = function() {
         this.calculate();
-        if(this.oldMargin != this.margin || this.oldTruChildrenPerRow != this.trueChildrenPerRow) {
-            this.adjust(this.margin, this.trueChildrenPerRow);
-        }
+        this.adjust(this.trueChildrenPerRow, this.margin, this.responsiveDimensions);
     }
 
     var PLUGIN_IDENTIFIER = 'responsiveList';
@@ -189,12 +272,21 @@
         init : function(options) {
             var _this = this;
             var settings = $.extend({
-                fillEmptyChildren: true,
-                minimumMargin: 20,
-                maximumMargin: 50,
+                minimumMargin: 25,
+                maximumMargin: 0,
 
-                minimumWidth: 0,
-                maximumWidth: 0
+                minimumWidth: 200,
+                maximumWidth: 400,
+
+                minimumHeight: 0,
+                maximumHeight: 0,
+
+                fillEmptyChildren: true,
+                scalePoroptional: true,
+                responsiveMargin: true,
+                responsiveScale: false,
+                preferScale: false,
+                preferMargin: false
             }, options);
 
             $(this).each(function() {
@@ -208,12 +300,6 @@
             });
 
             $(this).responsiveList('responsive');
-
-            var cssCalc = new cssDistanceCalculator();
-            var value = cssCalc.calculatePixel('10%', '1000px');
-            console.log('value: '+value);
-            var value = cssCalc.calculatePercentage('100px', '1000px');
-            console.log('value: '+value);
         },
 
         responsive: function() {
