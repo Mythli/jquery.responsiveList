@@ -103,7 +103,6 @@
 
     responsiveList.calcRowNodesGuess = function(listWidth, childWidth) {
         return Math.floor(listWidth / childWidth);
-
     }
 
     responsiveList.calcRowNodes = function(rowNodesGuess, nodeCount) {
@@ -162,30 +161,26 @@
 
     responsiveList.prototype.getRowNodes = function() {
         this.oldRowNodes = this.rowNodes;
-        //if(!this.settings.cache || this.rowNodes == undefined || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width) {
-            var rowNodesGuess = responsiveList.calcRowNodesGuess(this.getListSize().width, this.getNodeSize().width);
+        if(!this.settings.cache || this.rowNodes == undefined || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width || this.getNodeCount() != this.oldNodeCount) {
+            this.rowNodes = responsiveList.calcRowNodesGuess(this.getListSize().width, this.getNodeSize().width + this.settings.minimumMargin);
 
             if(this.settings.fillEmptyChildren) {
-                if(this.getNodeCount() != this.oldNodeCount) {
-                    this.rowNodes = responsiveList.calcRowNodes(rowNodesGuess, this.getNodeCount());
-                }
-            } else {
-                this.rowNodes = rowNodesGuess;
+                this.rowNodes = responsiveList.calcRowNodes(this.rowNodes, this.getNodeCount());
             }
 
             console.log('new row nodes: '+this.rowNodes);
-        //}
+        }
 
         return this.rowNodes;
     }
 
     responsiveList.prototype.getEmptySpace = function() {
         this.oldEmptySpace = this.emptySpace;
-        //if(!this.settings.cache || this.emptySpace == undefined || this.getRowNodes() != this.oldRowNodes || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width) {
+        if(!this.settings.cache || this.emptySpace == undefined || this.getRowNodes() != this.oldRowNodes || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width) {
             this.emptySpace = responsiveList.calcEmptySpace(this.getListSize().width, this.getNodeSize().width, this.getRowNodes());
 
             console.log('new empty space: '+this.emptySpace);
-        //}
+        }
 
         return this.emptySpace;
     }
