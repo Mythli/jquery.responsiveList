@@ -81,6 +81,7 @@
 
 
     function responsiveList(listElement, settings) {
+        this.doResize = true;
         this.listElement = listElement;
         this.firstChild = $(listElement).find('li');
         this.processSettings(settings);
@@ -142,26 +143,35 @@
     // getters
 
     responsiveList.prototype.getListSize = function() {
-        this.oldListSize = this.listSize;
-        this.listSize = responsiveList.calcSize(this.listElement);
-        return this.listSize;
+        if(this.doResize) {
+            this.oldListSize = this.listSize;
+            this.listSize = responsiveList.calcSize(this.listElement);
+            console.log('new list size: width: '+this.listSize.width + ' height: '+this.listSize.height);
+            return this.listSize;
+        }
     }
 
     responsiveList.prototype.getNodeCount = function() {
-        this.oldNodeCount = this.nodeCount;
-        this.nodeCount = responsiveList.calcNodeCount(this.listElement);
-        return this.nodeCount;
+        if(this.doResize) {
+            this.oldNodeCount = this.nodeCount;
+            this.nodeCount = responsiveList.calcNodeCount(this.listElement);
+            console.log('new node count: '+this.nodeCount);
+            return this.nodeCount;
+        }
     }
 
     responsiveList.prototype.getNodeSize = function() {
-        this.oldNodeSize = this.nodeSize;
-        this.nodeSize = responsiveList.calcSize(this.firstChild);
-        return this.nodeSize;
+        if(this.doResize) {
+            this.nodeSize = responsiveList.calcSize(this.firstChild);
+            this.oldNodeSize = this.nodeSize;
+            console.log('new node site: width: '+this.nodeSize.width +  'height: '+this.nodeSize.height);
+            return this.nodeSize;
+        }
     }
 
     responsiveList.prototype.getRowNodes = function() {
-        this.oldRowNodes = this.rowNodes;
         if(!this.settings.cache || this.rowNodes == undefined || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width || this.getNodeCount() != this.oldNodeCount) {
+            this.oldRowNodes = this.rowNodes;
             this.rowNodes = responsiveList.calcRowNodesGuess(this.getListSize().width, this.getNodeSize().width + this.settings.minimumMargin);
 
             if(this.settings.fillEmptyChildren) {
@@ -175,8 +185,8 @@
     }
 
     responsiveList.prototype.getEmptySpace = function() {
-        this.oldEmptySpace = this.emptySpace;
         if(!this.settings.cache || this.emptySpace == undefined || this.getRowNodes() != this.oldRowNodes || this.getListSize().width != this.oldListSize.width || this.getNodeSize().width != this.oldNodeSize.width) {
+            this.oldEmptySpace = this.emptySpace;
             this.emptySpace = responsiveList.calcEmptySpace(this.getListSize().width, this.getNodeSize().width, this.getRowNodes());
 
             console.log('new empty space: '+this.emptySpace);
@@ -203,8 +213,8 @@
             }
         }
 
-        this.oldMargin = this.margin;
         if(!this.settings.cache || this.margin == undefined || this.getEmptySpace() != this.oldEmptySpace || this.getRowNodes() != this.oldRowNodes) {
+            this.oldMargin = this.margin;
             this.margin = responsiveList.calcMargin(this.getEmptySpace(), this.getRowNodes());
 
              if(this.margin < this.settings.minimumMargin) {
@@ -244,7 +254,7 @@
         $(this.listElement).children().each(function() {
             _this.applyMargin(this, index);
 
-            if(index - 1 == _this.getRowNodes()) {
+            if(index == _this.getRowNodes() - 1) {
                 counter = 0;
             }
             index++;
@@ -252,8 +262,9 @@
     }
 
     responsiveList.prototype.responsive = function() {
-
+        this.doResize = true;
         this.adjust();
+        this.doResize = false;
     }
 
     var PLUGIN_IDENTIFIER = 'responsiveList';
