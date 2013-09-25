@@ -23,7 +23,19 @@
 
                 var examples = {
                     margin: function() {
-                        $('#productListMargin, #productListScale').responsiveList();
+                        $('#productListMargin, #productListScale').responsiveList({
+                            minimumMargin: 20,
+                            maximumMargin: -1,
+                            minimumWidth: 140,
+                            minimumHeight: 220,
+                            maximumWidth: 200,
+                            maximumHeight: 300,
+                            minimumRowNodes: 1,
+                            maximumRowNodes: 4,
+                            responsiveMargin: true,
+                            responsiveScale: true,
+                            preferMargin: false
+                        });
                     }
                 };
 
