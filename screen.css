@@ -50,7 +50,7 @@ a:hover {
 
 @media (min-width: 1200px) {
     .container {
-        max-width: 1170px;
+        max-width: 1550px;
     }
 }
 
@@ -72,9 +72,9 @@ a:hover {
 }
 
 .productList li {
-    width: 187px;
-    height: 350px;
-    margin: 0 0px 38px 0px;
+    width: 140px;
+    height: 220px;
+    margin: 0 25px 38px 0px;
 }
 
 .coverHolder {

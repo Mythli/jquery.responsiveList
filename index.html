@@ -24,16 +24,9 @@
                 var examples = {
                     margin: function() {
                         $('#productListMargin, #productListScale').responsiveList({
-                            minimumMargin: 20,
-                            maximumMargin: -1,
-                            minimumWidth: 140,
-                            minimumHeight: 220,
-                            maximumWidth: 200,
-                            maximumHeight: 300,
-                            minimumRowNodes: 1,
-                            maximumRowNodes: 4,
                             responsiveMargin: true,
                             responsiveScale: true,
+                            maxWidth: 140,
                             preferMargin: false
                         });
                     }
@@ -84,7 +77,6 @@
                             <p class="bookPrice">€12,99</p>
                         </a>
                     </li>
-
                     <li>
                         <a href="#">
                             <div class="coverHolder">
@@ -104,7 +96,6 @@
                             <p class="bookPrice">€12,99</p>
                         </a>
                     </li>
-
                 </ul>
             </div>
         </div>
