@@ -24,8 +24,10 @@
                 var examples = {
                     margin: function() {
                         $('#productListMargin, #productListScale').responsiveList({
-                            responsiveMargin: false,
-                            responsiveScale: true
+                            responsiveMargin: true,
+                            responsiveScale: true,
+                            maxMargin: 50,
+                            preferMargin: true
                         });
                     }
                 };

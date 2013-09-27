@@ -164,13 +164,13 @@
         this._cache.init('settings', ['listSize'], this._calcSettings);
         this._cache.init('rowNodes', ['listSize', 'nodeCount', 'settings'], this._calcRowNodes);
         this._cache.init('emptySpace', ['listSize', 'rowNodes', 'settings'], this._calcEmptySpace);
-        if(settings.preferMargin) {
-            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
-            this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings', 'margin'], this._calcScaledSize);
-        } else {
+        //if(settings.preferMargin) {
+        //    this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
+        //    this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings', 'margin'], this._calcScaledSize);
+        //} else {
             this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings'], this._calcScaledSize);
-            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings', 'scaledSize'], this._calcMargin);
-        }
+            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
+        //}
         //alert(this._cache._cache['test'][0][0]);
     }
 
@@ -218,6 +218,8 @@
             scaledSize.width = settings.maxWidth;
             if(settings.scalePoroptional) {
                 scaledSize.height = settings.maxHeight;
+            } else {
+                scaledSize.width = settings.minWidth;
             }
         }
 
