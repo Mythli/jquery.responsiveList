@@ -117,28 +117,30 @@
 
         if(this._cache[name][2] != value) {
             console.log('name: '+name+' value: '+value+' old: ' +this._cache[name][2]);
-            this._cache[name][2] = value;
+            if(value != this._cache[name][2]) {
+                this._cache[name][2] = value;
 
-            var keys = Object.keys(this._cache);
-            $.each(keys, function() {
-                var item = _this._cache[this];
-                if(item[0]) {
-                    if($.inArray(name, item[0]) > -1) {
-                        var args = Array();
-                        $.each(item[0], function() {
-                            var arg = _this._cache[this][2];
-                            if(arg) {
-                                args.push(arg);
+                var keys = Object.keys(this._cache);
+                $.each(keys, function() {
+                    var item = _this._cache[this];
+                    if(item[0]) {
+                        if($.inArray(name, item[0]) > -1) {
+                            var args = Array();
+                            $.each(item[0], function() {
+                                var arg = _this._cache[this][2];
+                                if(arg) {
+                                    args.push(arg);
+                                }
+                            });
+
+                            if(item[1] && args.length == item[0].length) {
+                                console.log('invoke: '+this+' due: '+name);
+                                _this.set(String(this), item[1].apply(_this.owner, args));
                             }
-                        });
-
-                        if(item[1] && args.length == item[0].length) {
-                            console.log('invoke: '+this+' due: '+name);
-                            _this.set(this, item[1].apply(_this.owner, args));
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -162,8 +164,13 @@
         this._cache.init('settings', ['listSize'], this._calcSettings);
         this._cache.init('rowNodes', ['listSize', 'nodeCount', 'settings'], this._calcRowNodes);
         this._cache.init('emptySpace', ['listSize', 'rowNodes', 'settings'], this._calcEmptySpace);
-        this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings'], this._calcScaledSize);
-        this._cache.init('test', ['emptySpace', 'rowNodes'], this._calcScaledSize);
+        if(settings.preferMargin) {
+            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
+            this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings', 'margin'], this._calcScaledSize);
+        } else {
+            this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings'], this._calcScaledSize);
+            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings', 'scaledSize'], this._calcMargin);
+        }
         //alert(this._cache._cache['test'][0][0]);
     }
 
@@ -200,8 +207,8 @@
             return new CssSize(this.getSettings().minWidth, this.getSettings().minHeight);
         }
         ;
-        var scaledSize = calcScaledSize(new CssSize(settings.minWidth, settings.minHeight), emptySpace + this.margin, rowNodes, settings.scalePoroptional);
-        scaledSize.width = (scaledSize.width - this.margin);
+        var scaledSize = calcScaledSize(new CssSize(settings.minWidth, settings.minHeight), emptySpace + this.getMargin(), rowNodes, settings.scalePoroptional);
+        scaledSize.width = (scaledSize.width - this.getMargin());
 
         if(!settings.precise) {
             scaledSize.floor();
@@ -224,30 +231,46 @@
     }
     
     ResponsiveList.prototype.getScaledSize = function() {
-        return this._cache.get('scaledSize');
+        var scaledSize = this._cache.get('scaledSize');
+        if(!scaledSize) {
+            scaledSize = new CssSize();
+        }
+        return scaledSize;
     }
 
-    ResponsiveList.prototype.calcMargin = function() {
-        var margin = this.getSettings().minMargin;
+    ResponsiveList.prototype._calcMargin = function(emptySpace, rowNodes, settings) {
+        var margin = settings.minMargin;
 
-        if(this.getSettings().responsiveMargin) {
+        console.log('space: '+emptySpace+' rowNodes: '+rowNodes);
+
+        if(settings.responsiveMargin) {
             var scaledSpace = 0;
-            if(!this.getSettings().preferMargin) {
-                scaledSpace = (this.getScaledSize().width - this.getSettings().minWidth) * this.getRowNodes();
+            if(!settings.preferMargin) {
+                scaledSpace = (this.getScaledSize().width - settings.minWidth) * rowNodes;
             }
-            margin = calcMargin(this.getEmptySpace() - scaledSpace, this.getRowNodes());
-            if(!this.getSettings().precise) {
+            margin = calcMargin(emptySpace - scaledSpace, rowNodes);
+            if(!settings.precise) {
                 margin = Math.floor(margin);
             }
 
-            if(margin < this.getSettings().minMargin) {
-                margin = this.getSettings().minMargin;
+            if(margin < settings.minMargin) {
+                margin = settings.minMargin;
             }
 
-            if(margin > this.getSettings().maxMargin && this.getSettings().maxMargin != -1) {
-                console.log(this.getSettings().maxMargin);
-                margin = this.getSettings().maxMargin;
+            if(margin > settings.maxMargin && settings.maxMargin != -1) {
+                console.log(settings.maxMargin);
+                margin = settings.maxMargin;
             }
+        }
+
+        console.log('space: '+emptySpace+' rowNodes: '+rowNodes+' margin: '+margin);
+        return margin;
+    }
+
+    ResponsiveList.prototype.getMargin = function() {
+        var margin = this._cache.get('margin');
+        if(!margin) {
+            margin = 0;
         }
         return margin;
     }
@@ -264,7 +287,7 @@
             maxHeight: calcPx(parseCss(this._rawSettings.maxHeight), listSize.width)
         });
 
-        this.margin = newSettings.minMargin;
+        //this._cache.set('margin', newSettings.minMargin);
         return newSettings;
     }
 
@@ -273,12 +296,12 @@
     }
 
     ResponsiveList.prototype.applyMargin = function(element, index) {
-        var margin = this.margin;
+        var margin = this.getMargin();
         if(index == this.getRowNodes()) {
             margin = 0;
         }
         if(this.getRowNodes() == 1) {
-            margin = this.margin;
+            margin = this.getMargin();
         }
 
         $(element).css('margin-right', margin+'px');
@@ -316,31 +339,7 @@
             return 0;
         }
 
-        /*//if(this.getEmptySpace() != this.oldEmptySpace || this.getRowNodes() != this.oldRowNodes) {
-            if(this.getSettings().preferMargin) {
-                this.oldMargin = this.margin;
-                this.margin = this.calcMargin();
-
-                this.oldScaledSize = this.getScaledSize();
-                this.getScaledSize() = this._calcScaledSize();
-            } else {
-                this.oldScaledSize = this.getScaledSize();
-                this.getScaledSize() = this._calcScaledSize();
-
-                this.oldMargin = this.margin;
-                this.margin = this.calcMargin();
-            }
-
-            if(this.margin != this.oldMargin) {
-                console.log('new margin: '+this.margin);
-            }
-
-            if(!this.getScaledSize().compare(this.oldScaledSize)) {
-                console.log('new scale: width: '+this.getScaledSize().width+' height: '+this.getScaledSize().height);
-            }
-        //}*/
-
-        //if(this.margin != this.oldMargin || !this.getScaledSize().compare(this.oldScaledSize)) {
+        //if(this.getMargin() != this.oldMargin || !this.getScaledSize().compare(this.oldScaledSize)) {
             console.log('adjusting...');
             this.adjust();
         //}
