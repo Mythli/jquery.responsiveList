@@ -166,14 +166,13 @@
 
             var args = _this._dependencyValues(item.dependencies);
             if(args.length == item.dependencies.length) {
-                if(rootDependency) {
-                    if(item.rootValue == _this._cache[rootDependency].value && !isRootDependency) {
-                        return;
-                    }
-
-                    console.log('calling '+this + ' due ' + name);
-                    _this.set(String(this), item.functor.apply(_this.owner, args), rootDependency);
+                if(!rootDependency) { return true; }
+                if(item.rootValue == _this._cache[rootDependency].value && !isRootDependency) {
+                    return true;
                 }
+
+                console.log('calling '+this + ' due ' + name);
+                _this.set(String(this), item.functor.apply(_this.owner, args), rootDependency);
             }
         });
     }
