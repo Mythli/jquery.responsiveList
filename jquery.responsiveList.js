@@ -88,7 +88,7 @@
         }
         if(this.width == size.width && this.height == size.width) {
             return true;
-        }
+        }7
         return false;
     }
 
@@ -97,51 +97,85 @@
         this.height = Math.floor(this.height);
     }
 
+    function CacheItem() {
+        this.dependencies = new Array();
+        this.functor = null;
+        this.value = null;
+        this.rootValue = null;
+    }
+
     function CacheSet(owner) {
         this.flush();
         this.owner = owner;
     }
 
     CacheSet.prototype.init = function(name, dependencies, functor) {
-        this._cache[name] = new Array();
-        this._cache[name][0] = dependencies;
-        this._cache[name][1] = functor;
+        var newItem = new CacheItem();
+        newItem.dependencies = dependencies;
+        newItem.functor = functor;
+        this._cache[name] = newItem;
     }
 
     CacheSet.prototype.get = function(name) {
-        return this._cache[name][2];
+        return this._cache[name].value;
     }
 
-    CacheSet.prototype.set = function(name, value) {
+    CacheSet.prototype._dependencyValues = function(dependencies) {
         var _this = this;
+        var values = Array();
+        $.each(dependencies, function() {
+            var value = _this._cache[this].value;
+            if(!value) { return true; }
 
-        if(this._cache[name][2] != value) {
-            console.log('name: '+name+' value: '+value+' old: ' +this._cache[name][2]);
-            if(value != this._cache[name][2]) {
-                this._cache[name][2] = value;
+            values.push(value);
+        });
+        return values;
+    }
 
-                var keys = Object.keys(this._cache);
-                $.each(keys, function() {
-                    var item = _this._cache[this];
-                    if(item[0]) {
-                        if($.inArray(name, item[0]) > -1) {
-                            var args = Array();
-                            $.each(item[0], function() {
-                                var arg = _this._cache[this][2];
-                                if(arg) {
-                                    args.push(arg);
-                                }
-                            });
+    CacheSet.prototype.set = function(name, value, rootDependency) {
+        var _this = this;
+        var currentItem = this._cache[name];
+        if(!currentItem) { return; }
 
-                            if(item[1] && args.length == item[0].length) {
-                                console.log('invoke: '+this+' due: '+name);
-                                _this.set(String(this), item[1].apply(_this.owner, args));
-                            }
-                        }
-                    }
-                });
-            }
+
+        if(rootDependency) {
+            currentItem.rootValue = _this._cache[rootDependency].value;
         }
+        if(!currentItem.dependencies) {
+            rootDependency = name;
+            var isRootDependency = true;
+        }
+
+        if(currentItem.value == value) { return; }
+
+
+        currentItem.value = value;
+        console.log('calling '+name);
+
+        var keys = Object.keys(this._cache);
+
+        $.each(keys, function() {
+            var item = _this._cache[this];
+            if(!item.dependencies || !item.functor) { return true; }
+            if(isRootDependency && this != name) {
+                item.value = undefined;
+            }
+
+            // check if item is dependent on name
+            if($.inArray(name, item.dependencies) < 0) { return true; }
+
+            var args = _this._dependencyValues(item.dependencies);
+            if(args.length == item.dependencies.length) {
+                if(rootDependency) {
+                    if(item.rootValue == _this._cache[rootDependency].value && !isRootDependency) {
+                        return;
+                    }
+
+                    console.log('calling '+this + ' due ' + name);
+                    _this.set(String(this), item.functor.apply(_this.owner, args), rootDependency);
+                }
+            }
+        });
     }
 
     CacheSet.prototype.flush = function() {
@@ -164,14 +198,14 @@
         this._cache.init('settings', ['listSize'], this._calcSettings);
         this._cache.init('rowNodes', ['listSize', 'nodeCount', 'settings'], this._calcRowNodes);
         this._cache.init('emptySpace', ['listSize', 'rowNodes', 'settings'], this._calcEmptySpace);
-        //if(settings.preferMargin) {
-        //    this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
-        //    this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings', 'margin'], this._calcScaledSize);
-        //} else {
+        if(!settings.preferMargin) {
             this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings'], this._calcScaledSize);
+            this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings', 'scaledSize'], this._calcMargin);
+        } else {
             this._cache.init('margin', ['emptySpace', 'rowNodes', 'settings'], this._calcMargin);
-        //}
-        //alert(this._cache._cache['test'][0][0]);
+            this._cache.init('scaledSize', ['emptySpace', 'rowNodes', 'settings', 'margin'], this._calcScaledSize);
+        }
+        this._cache.init('adjust', ['margin', 'scaledSize', 'rowNodes', 'settings'], this.adjust);
     }
 
     ResponsiveList.prototype.getNodeCount = function() { return this._cache.get('nodeCount'); }
@@ -199,12 +233,11 @@
     ResponsiveList.prototype._calcEmptySpace = function(listSize, rowNodes, settings) {
         return calcEmptySpace(listSize.width, settings.minWidth, rowNodes);
     }
-
     ResponsiveList.prototype.getEmptySpace = function() { return this._cache.get('emptySpace'); }
 
     ResponsiveList.prototype._calcScaledSize = function(emptySpace, rowNodes, settings) {
-        if(!this.getSettings().responsiveScale) {
-            return new CssSize(this.getSettings().minWidth, this.getSettings().minHeight);
+        if(!settings.responsiveScale) {
+            return new CssSize(settings.minWidth, settings.minHeight);
         }
         ;
         var scaledSize = calcScaledSize(new CssSize(settings.minWidth, settings.minHeight), emptySpace + this.getMargin(), rowNodes, settings.scalePoroptional);
@@ -231,19 +264,16 @@
         }
         return scaledSize;
     }
-    
     ResponsiveList.prototype.getScaledSize = function() {
         var scaledSize = this._cache.get('scaledSize');
         if(!scaledSize) {
-            scaledSize = new CssSize();
+            scaledSize = new CssSize(this.getSettings().minWidth, this.getSettings().maxWidth);
         }
         return scaledSize;
     }
 
     ResponsiveList.prototype._calcMargin = function(emptySpace, rowNodes, settings) {
         var margin = settings.minMargin;
-
-        console.log('space: '+emptySpace+' rowNodes: '+rowNodes);
 
         if(settings.responsiveMargin) {
             var scaledSpace = 0;
@@ -260,19 +290,16 @@
             }
 
             if(margin > settings.maxMargin && settings.maxMargin != -1) {
-                console.log(settings.maxMargin);
                 margin = settings.maxMargin;
             }
         }
 
-        console.log('space: '+emptySpace+' rowNodes: '+rowNodes+' margin: '+margin);
         return margin;
     }
-
     ResponsiveList.prototype.getMargin = function() {
         var margin = this._cache.get('margin');
         if(!margin) {
-            margin = 0;
+            margin = this.getSettings().minMargin;
         }
         return margin;
     }
@@ -289,7 +316,6 @@
             maxHeight: calcPx(parseCss(this._rawSettings.maxHeight), listSize.width)
         });
 
-        //this._cache.set('margin', newSettings.minMargin);
         return newSettings;
     }
 
@@ -314,37 +340,35 @@
         $(element).css('height', this.getScaledSize().height);
     }
 
-    ResponsiveList.prototype.adjust = function() {
+    ResponsiveList.prototype.adjust = function(margin, scaledSize, rowNodes, settings) {
+        console.log('adjust...');
         var _this = this;
         var index = 0;
         $(this._listElement).children().each(function() {
             index++;
 
-            var doAdjust = _this.getSettings().beforeAdjust(this, index, _this);
+            var doAdjust = settings.beforeAdjust(this, index, _this);
             if(doAdjust || doAdjust == undefined) {
                 _this.applyMargin(this, index);
                 _this.applyScale(this);
-                _this.getSettings().afterAdjust(this, index, _this);
+                settings.afterAdjust(this, index, _this);
             }
 
-            if(index == _this.getRowNodes()) {
+            if(index == rowNodes) {
                 index = 0;
             }
         });
     }
 
     ResponsiveList.prototype.responsive = function() {
-        this._cache.set('nodeCount', calcNodeCount(this._listElement));
-        this._cache.set('listSize', calcSize(this._listElement));
+        var nodeCount = calcNodeCount(this._listElement);
 
-        if(this.getRowNodes() < 1) {
+        if(nodeCount < 1) {
             return 0;
         }
 
-        //if(this.getMargin() != this.oldMargin || !this.getScaledSize().compare(this.oldScaledSize)) {
-            console.log('adjusting...');
-            this.adjust();
-        //}
+        this._cache.set('nodeCount', nodeCount);
+        this._cache.set('listSize', calcSize(this._listElement));
     }
 
     var PLUGIN_IDENTIFIER = 'ResponsiveList';
@@ -414,8 +438,4 @@
             $.error( 'Method ' +  method + ' does not exist on jQuery.'+PLUGIN_IDENTIFIER );
         }
     };
-
-    $.responsiveList = function() {
-
-    }
 }( jQuery ));
