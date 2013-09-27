@@ -137,7 +137,6 @@
         var currentItem = this._cache[name];
         if(!currentItem) { return; }
 
-
         if(rootDependency) {
             currentItem.rootValue = _this._cache[rootDependency].value;
         }
@@ -147,7 +146,6 @@
         }
 
         if(currentItem.value == value) { return; }
-
 
         currentItem.value = value;
         console.log('calling '+name);
