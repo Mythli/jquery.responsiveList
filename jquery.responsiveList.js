@@ -1,7 +1,9 @@
 (function ( $ ) {
 	function parseCss(cssStr) {
-		var expression = new RegExp('(-*\\d+)((?:px)|(?:%)|(?:em)|(?:){0})$');
-		var matches = expression.exec(cssStr);
+		var eCssStr = new RegExp('(-*\\d+)((?:px)|(?:%)|(?:em)|(?:){0})$'),
+			matches;
+
+		matches = eCssStr.exec(cssStr);
 		if(matches) {
 			matches.splice(0, 1);
 			matches[0] = Number(matches[0]);
@@ -13,8 +15,8 @@
 
 	// TODO: percent values
 	function calcPx(value, reference) {
-		var nValue = value;
-		var nReference = reference;
+		var nValue = value,
+			nReference = reference;
 
 		if (Array.isArray(value)) { nValue = value[0]; }
 		if (Array.isArray(reference)) { nReference = reference[0] }
@@ -30,7 +32,7 @@
 		return $(listElement).children().length;
 	}
 
-	function calcRowNodesGuess(listWidth, childWidth) {
+	function calcRowNodesGuess(listWidth, childWidth ) {
 		return Math.floor(listWidth / childWidth);
 	}
 
@@ -42,9 +44,9 @@
 	}
 
 	function calcEmptySpace(listWidth, nodeWidth, rowNodes) {
-		var nodesSpace = rowNodes * nodeWidth;
-		var restSpace = listWidth % nodesSpace;
-		var emptySpace = listWidth - nodesSpace;
+		var nodesSpace = rowNodes * nodeWidth,
+			restSpace = listWidth % nodesSpace,
+			emptySpace = listWidth - nodesSpace;
 
 		if(emptySpace > restSpace) {
 			return emptySpace;
@@ -83,7 +85,7 @@
 	}
 
 	CssSize.prototype.compare = function(size) {
-		if(size == undefined) {
+		if(size === undefined) {
 			return false;
 		}
 		if(this.width == size.width && this.height == size.width) {
@@ -97,22 +99,17 @@
 		this.height = Math.floor(this.height);
 	}
 
-	function CacheItem() {
-		this.dependencies = new Array();
-		this.functor = null;
-		this.value = null;
-		this.rootValue = null;
-	}
-
 	function CacheSet(owner) {
 		this.flush();
 		this.owner = owner;
 	}
 
 	CacheSet.prototype.init = function(name, dependencies, functor) {
-		var newItem = new CacheItem();
-		newItem.dependencies = dependencies;
-		newItem.functor = functor;
+		var newItem = {
+			dependencies: dependencies,
+			functor: functor
+		};
+
 		this._cache[name] = newItem;
 	}
 
@@ -121,8 +118,9 @@
 	}
 
 	CacheSet.prototype._dependencyValues = function(dependencies) {
-		var _this = this;
-		var values = Array();
+		var _this = this,
+			values = [];
+
 		$.each(dependencies, function() {
 			var value = _this._cache[this].value;
 			if(!value) { return true; }
@@ -133,49 +131,59 @@
 	}
 
 	CacheSet.prototype.set = function(name, value, rootDependency) {
-		var _this = this;
-		var currentItem = this._cache[name];
-		if(!currentItem) { return; }
+		var _this = this,
+			currentItem = this._cache[name],
+			isRootDependency = false;
+
+		if(!currentItem) {
+			return;
+		}
 
 		if(rootDependency) {
 			currentItem.rootValue = _this._cache[rootDependency].value;
 		}
+		if( currentItem.value == value ) {
+			return;
+		}
 		if(!currentItem.dependencies) {
 			rootDependency = name;
-			var isRootDependency = true;
+			isRootDependency = true;
 		}
-
-		if(currentItem.value == value) { return; }
 
 		currentItem.value = value;
 		console.log('calling '+name);
 
-		var keys = Object.keys(this._cache);
+		$.each(Object.keys(this._cache), function() {
+			var itemName = String(this),
+				item = _this._cache[itemName],
+				args;
 
-		$.each(keys, function() {
-			var item = _this._cache[this];
-			if(!item.dependencies || !item.functor) { return true; }
-			if(isRootDependency && this != name) {
-				item.value = undefined;
+			if(!item.dependencies || !item.functor) {
+				return true;
+			}
+			if(isRootDependency && itemName != name) {
+				item.value = null;
 			}
 
 			// check if item is dependent on name
-			if($.inArray(name, item.dependencies) < 0) { return true; }
+			if($.inArray( name, item.dependencies ) < 0) {
+				return true;
+			}
 
-			var args = _this._dependencyValues(item.dependencies);
+			args = _this._dependencyValues( item.dependencies );
 			if(args.length == item.dependencies.length) {
 				if(item.rootValue == _this._cache[rootDependency].value && !isRootDependency) {
 					return true;
 				}
 
 				console.log('calling '+this + ' due ' + name);
-				_this.set(String(this), item.functor.apply(_this.owner, args), rootDependency);
+				_this.set(itemName, item.functor.apply(_this.owner, args), rootDependency);
 			}
 		});
 	}
 
 	CacheSet.prototype.flush = function() {
-		this._cache = new Array();
+		this._cache = {};
 	}
 
 	function ResponsiveList(listElement, settings) {
@@ -338,13 +346,14 @@
 
 	ResponsiveList.prototype.adjust = function(margin, scaledSize, rowNodes, settings) {
 		console.log('adjust...');
-		var _this = this;
-		var index = 0;
-		$(this._listElement).children().each(function() {
-			index++;
+		var _this = this,
+			index = 0;
 
+		$(this._listElement).children().each(function() {
 			var doAdjust = settings.beforeAdjust(this, index, _this);
-			if(doAdjust || doAdjust == undefined) {
+
+			index++;
+			if(doAdjust == true || doAdjust === undefined) {
 				_this.applyMargin(this, index);
 				_this.applyScale(this);
 				settings.afterAdjust(this, index, _this);
