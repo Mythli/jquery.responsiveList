@@ -1,113 +1,113 @@
 body {
-    margin: 0px;
-    padding: 0px;
-    background-color: #EBEBEB;
-    color: gray;
+	margin: 0px;
+	padding: 0px;
+	background-color: #EBEBEB;
+	color: gray;
 }
 
 h1, h2, h3 {
-    text-transform: uppercase;
-    margin-top: 100px;
+	text-transform: uppercase;
+	margin-top: 100px;
 }
 
 a {
-    color: gray;
-    text-decoration: none;
+	color: gray;
+	text-decoration: none;
 }
 
 a:hover {
-    text-decoration: none;
-    color: #4d4d4d;
+	text-decoration: none;
+	color: #4d4d4d;
 }
 
 .clearfix:after {
-    content: " "; /* Older browser do not support empty content */
-    visibility: hidden;
-    display: block;
-    height: 0;
-    clear: both;
+	content: " "; /* Older browser do not support empty content */
+	visibility: hidden;
+	display: block;
+	height: 0;
+	clear: both;
 }
 
 #topBar {
-    height: 25px;
-    padding: 7px;
-    padding-left: 15px;
-    background-color: #F1F1F1;
-    border-bottom: 1px solid #e8e8e8;
+	height: 25px;
+	padding: 7px;
+	padding-left: 15px;
+	background-color: #F1F1F1;
+	border-bottom: 1px solid #e8e8e8;
 }
 
 #socialCodingButtons {
-    float: right;
+	float: right;
 }
 
 .container {
-    padding-right: 15px;
-    padding-left: 15px;
-    margin-right: auto;
-    margin-left: auto;
-    margin-bottom: 100px;
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-bottom: 100px;
 }
 
 @media (min-width: 1200px) {
-    .container {
-        max-width: 1550px;
-    }
+	.container {
+		max-width: 1550px;
+	}
 }
 
 @media (min-width: 992px) {
-    .container {
-        max-width: 970px;
-    }
+	.container {
+		max-width: 970px;
+	}
 }
 
 .productListContainer {
-    padding: 1px;
-    border: solid 1px grey;
+	padding: 1px;
+	border: solid 1px grey;
 }
 
 .productList {
-    margin: 0px;
-    padding: 0px;
-    list-style: none;
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
 }
 
 .productList li {
-    width: 140px;
-    height: 220px;
-    margin: 0 25px 38px 0px;
+	width: 140px;
+	height: 220px;
+	margin: 0 25px 38px 0px;
 }
 
 .coverHolder {
-    position: relative;
+	position: relative;
 }
 
 .productList img {
-    height: 100%;
-    width: 100%;
+	height: 100%;
+	width: 100%;
 }
 
 .productList p {
-    text-align: center;
-    margin-top: 25px;
+	text-align: center;
+	margin-top: 25px;
 }
 
 .productList .bookPrice {
-    margin-top: 5px;
-    font-size: 16px;
+	margin-top: 5px;
+	font-size: 16px;
 }
 
 .productList .bookName {
-    margin-top: 15px;
-    color: #4D4D4D;
-    font-size: 17px;
-    font-family: sans-serif;
-    font-weight: lighter;
+	margin-top: 15px;
+	color: #4D4D4D;
+	font-size: 17px;
+	font-family: sans-serif;
+	font-weight: lighter;
 }
 
 .productList a:hover {
-    color: #808080;
+	color: #808080;
 }
 
 #productListScale li {
-    width: 50px;
+	width: 50px;
 }

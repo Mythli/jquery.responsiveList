@@ -1,110 +1,110 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>stuffList Demo</title>
-        <link href="jquery.responsiveList.css" rel="stylesheet" type="text/css">
-        <link href="screen.css" rel="stylesheet" type="text/css">
+		<title>stuffList Demo</title>
+		<link href="jquery.responsiveList.css" rel="stylesheet" type="text/css">
+		<link href="screen.css" rel="stylesheet" type="text/css">
 
-        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
-        <script type="text/javascript" src="jquery.responsiveList.js"></script>
-        <script type="text/javascript">
-            function newList(id, name) {
-                var html = $('#productListMargin').html();
-                html = '<h2>'+name+'</h2></h2><div class="productListContainer"><ul id="'+id+'" class="stuffList clearfix productList">'+html+'</div></div>';
-                $('#listContainer').append(html);
-            }
+		<script type="text/javascript" src="jquery.responsiveList.js"></script>
+		<script type="text/javascript">
+			function newList(id, name) {
+				var html = $('#productListMargin').html();
+				html = '<h2>'+name+'</h2></h2><div class="productListContainer"><ul id="'+id+'" class="stuffList clearfix productList">'+html+'</div></div>';
+				$('#listContainer').append(html);
+			}
 
-            $(document).ready(function() {
-               // newList('productListScale', 'Scale');
+			$(document).ready(function() {
+			   // newList('productListScale', 'Scale');
 
-                var examples = {
-                    margin: function() {
-                        $('#productListMargin, #productListScale').responsiveList({
-                            responsiveMargin: true,
-                            responsiveScale: true,
-                            preferMargin: false
-                        });
-                    }
-                };
+				var examples = {
+					margin: function() {
+						$('#productListMargin, #productListScale').responsiveList({
+							responsiveMargin: true,
+							responsiveScale: true,
+							preferMargin: true
+						});
+					}
+				};
 
-                $('#usageType').change(function() {
-                    examples[$(this).val()]();
-                });
+				$('#usageType').change(function() {
+					examples[$(this).val()]();
+				});
 
-                examples.margin();
-            });
+				examples.margin();
+			});
 
-            function test(a) {
-                return 'swag';
-            }
+			function test(a) {
+				return 'swag';
+			}
 
-            function dependency() {
-                alert('aa');
-            }
-        </script>
-    </head>
-    <body>
-        <div id="topBar">
-            <select id="usageType" name="usageType">
-                <option value="margin">Margin</option>
-            </select>
-            <div id="socialCodingButtons">
-                <iframe src="http://ghbtns.com/github-btn.html?user=Mythli&repo=jquery.ytload&type=watch&count=true"
-                        allowtransparency="true" frameborder="0" scrolling="0" width="80" height="20"></iframe>
-                <iframe src="http://ghbtns.com/github-btn.html?user=mythli&repo=jquery.ytload&type=fork&count=true"
-                        allowtransparency="true" frameborder="0" scrolling="0" width="80" height="20"></iframe>
-                <iframe src="http://ghbtns.com/github-btn.html?user=Mythli&repo=jquery.ytload&type=follow&count=true"
-                        allowtransparency="true" frameborder="0" scrolling="0" width="140" height="20"></iframe>
-            </div>
-        </div>
-        <div id="listContainer" class="container">
-            <h2>Margin</h2>
-            <div class="productListContainer">
-                <ul id="productListMargin" class="stuffList clearfix productList">
-                    <li>
-                        <a href="#">
-                            <div class="coverHolder">
-                                <img class="" src="img/expanse.jpg">
-                            </div>
-                            <p class="bookName">Leviathan Wakes</p>
-                            <p class="bookPrice">€12,99</p>
-                        </a>
-                    </li>
+			function dependency() {
+				alert('aa');
+			}
+		</script>
+	</head>
+	<body>
+		<div id="topBar">
+			<select id="usageType" name="usageType">
+				<option value="margin">Margin</option>
+			</select>
+			<div id="socialCodingButtons">
+				<iframe src="http://ghbtns.com/github-btn.html?user=Mythli&repo=jquery.ytload&type=watch&count=true"
+						allowtransparency="true" frameborder="0" scrolling="0" width="80" height="20"></iframe>
+				<iframe src="http://ghbtns.com/github-btn.html?user=mythli&repo=jquery.ytload&type=fork&count=true"
+						allowtransparency="true" frameborder="0" scrolling="0" width="80" height="20"></iframe>
+				<iframe src="http://ghbtns.com/github-btn.html?user=Mythli&repo=jquery.ytload&type=follow&count=true"
+						allowtransparency="true" frameborder="0" scrolling="0" width="140" height="20"></iframe>
+			</div>
+		</div>
+		<div id="listContainer" class="container">
+			<h2>Margin</h2>
+			<div class="productListContainer">
+				<ul id="productListMargin" class="stuffList clearfix productList">
+					<li>
+						<a href="#">
+							<div class="coverHolder">
+								<img class="" src="img/expanse.jpg">
+							</div>
+							<p class="bookName">Leviathan Wakes</p>
+							<p class="bookPrice">€12,99</p>
+						</a>
+					</li>
 
-                    <li>
-                        <a href="#">
-                            <div class="coverHolder">
-                                <img class="" src="img/expanse.jpg">
-                            </div>
-                            <p class="bookName">Leviathan Wakes</p>
-                            <p class="bookPrice">€12,99</p>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <div class="coverHolder">
-                                <img class="" src="img/expanse.jpg">
-                            </div>
-                            <p class="bookName">Leviathan Wakes</p>
-                            <p class="bookPrice">€12,99</p>
-                        </a>
-                    </li>
+					<li>
+						<a href="#">
+							<div class="coverHolder">
+								<img class="" src="img/expanse.jpg">
+							</div>
+							<p class="bookName">Leviathan Wakes</p>
+							<p class="bookPrice">€12,99</p>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<div class="coverHolder">
+								<img class="" src="img/expanse.jpg">
+							</div>
+							<p class="bookName">Leviathan Wakes</p>
+							<p class="bookPrice">€12,99</p>
+						</a>
+					</li>
 
-                    <li>
-                        <a href="#">
-                            <div class="coverHolder">
-                                <img class="" src="img/expanse.jpg">
-                            </div>
-                            <p class="bookName">Leviathan Wakes</p>
-                            <p class="bookPrice">€12,99</p>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </body>
+					<li>
+						<a href="#">
+							<div class="coverHolder">
+								<img class="" src="img/expanse.jpg">
+							</div>
+							<p class="bookName">Leviathan Wakes</p>
+							<p class="bookPrice">€12,99</p>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</body>
 </html>
