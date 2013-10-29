@@ -243,7 +243,7 @@
 		if(!settings.responsiveScale) {
 			return new CssSize(settings.minWidth, settings.minHeight);
 		}
-		;
+
 		var scaledSize = calcScaledSize(new CssSize(settings.minWidth, settings.minHeight), emptySpace + this.getMargin(), rowNodes, settings.scalePoroptional);
 		scaledSize.width = (scaledSize.width - this.getMargin());
 
